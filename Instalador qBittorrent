@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Script Proxmox LXC qBittorrent v5+ (tar.gz + volumes HD externo)
+# Script Proxmox LXC qBittorrent v5.1.2 (CMake + volumes HD externo)
 # Autor: Gustavo / Adaptado do tteck
 # Licença: MIT
 
@@ -56,17 +56,15 @@ function default_settings() {
 # Função para configurar volumes do HD externo
 function setup_volumes() {
     echo -e "\nConfigurando volumes do HD externo..."
-    # Cria pastas no HD externo
     mkdir -p /mnt/hdexterno/Downloads/incomplete
     mkdir -p /mnt/hdexterno/Downloads/complete
     chmod -R 777 /mnt/hdexterno/Downloads/incomplete /mnt/hdexterno/Downloads/complete
 
-    # Mapeia volumes no container
     echo "mp0: /mnt/hdexterno/Downloads/incomplete,mp=/mnt/incomplete" >> /etc/pve/lxc/$CT_ID.conf
     echo "mp1: /mnt/hdexterno/Downloads/complete,mp=/mnt/complete" >> /etc/pve/lxc/$CT_ID.conf
 }
 
-# Função de instalação do qBittorrent via tar.gz
+# Função de instalação do qBittorrent via tar.gz + CMake
 function install_qbittorrent() {
     echo -e "\nInstalando dependências..."
     apt update
@@ -74,14 +72,16 @@ function install_qbittorrent() {
     libboost-system-dev libboost-chrono-dev libboost-random-dev libssl-dev \
     libtorrent-rasterbar-dev zlib1g-dev curl
 
-    echo -e "\nBaixando qBittorrent mais recente do SourceForge..."
+    echo -e "\nBaixando qBittorrent 5.1.2 do SourceForge..."
     cd /tmp
     curl -L -o qbittorrent-5.1.2.tar.gz "https://sourceforge.net/projects/qbittorrent/files/qbittorrent/qbittorrent-5.1.2/qbittorrent-5.1.2.tar.gz/download"
     tar xvf qbittorrent-5.1.2.tar.gz
     cd qbittorrent-5.1.2
 
-    echo -e "\nCompilando qBittorrent..."
-    ./configure --disable-gui
+    echo -e "\nCompilando qBittorrent (CMake)..."
+    mkdir build
+    cd build
+    cmake .. -DENABLE_GUI=OFF
     make -j$(nproc)
     make install
 
