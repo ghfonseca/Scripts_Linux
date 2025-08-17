@@ -105,6 +105,14 @@ function install_libtorrent() {
     echo -e "\nlibtorrent-rasterbar 2.0.10 instalado com sucesso!"
 }
 
+# Instala dependências do Qt6 (necessárias mesmo para qBittorrent sem GUI)
+function install_qt6() {
+    echo -e "\nInstalando dependências Qt6..."
+    apt update
+    apt install -y qt6-base-dev qt6-base-dev-tools qt6-tools-dev qt6-tools-dev-tools qt6-networkauth-dev
+}
+
+
 # Instala qBittorrent 5.1.2
 function install_qbittorrent() {
     echo -e "\nInstalando qBittorrent 5.1.2..."
@@ -148,6 +156,6 @@ description
 setup_volumes
 install_boost
 install_libtorrent
+install_qt6
 install_qbittorrent
-
 msg_ok "Completed Successfully!\n"
