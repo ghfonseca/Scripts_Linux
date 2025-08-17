@@ -1,0 +1,110 @@
+#!/usr/bin/env bash
+# Script Proxmox LXC qBittorrent v5+ (instalação via GitHub tar.gz)
+# Autor: Gustavo / Adaptado do tteck
+# Licença: MIT
+
+source <(curl -s https://raw.githubusercontent.com/tteck/Proxmox/main/misc/build.func)
+
+function header_info {
+clear
+cat <<"EOF"
+         ____  _ __  __                             __ 
+  ____ _/ __ )(_) /_/ /_____  _____________  ____  / /_
+ / __ `/ __  / / __/ __/ __ \/ ___/ ___/ _ \/ __ \/ __/
+/ /_/ / /_/ / / /_/ /_/ /_/ / /  / /  /  __/ / / / /_  
+\__, /_____/_/\__/\__/\____/_/  /_/   \___/_/ /_/\__/  
+  /_/                                                  
+EOF
+}
+header_info
+echo -e "Loading..."
+APP="qBittorrent"
+var_disk="8"
+var_cpu="2"
+var_ram="2048"
+var_os="debian"
+var_version="12"
+variables
+color
+catch_errors
+
+# Configurações padrão do container
+function default_settings() {
+  CT_TYPE="1"
+  PW=""
+  CT_ID=$NEXTID
+  HN=$NSAPP
+  DISK_SIZE="$var_disk"
+  CORE_COUNT="$var_cpu"
+  RAM_SIZE="$var_ram"
+  BRG="vmbr0"
+  NET="dhcp"
+  GATE=""
+  APT_CACHER=""
+  APT_CACHER_IP=""
+  DISABLEIP6="no"
+  MTU=""
+  SD=""
+  NS=""
+  MAC=""
+  VLAN=""
+  SSH="no"
+  VERB="no"
+  echo_default
+}
+
+# Função de instalação do qBittorrent via tar.gz
+function install_qbittorrent() {
+    echo -e "\nInstalando dependências..."
+    apt update
+    apt install -y build-essential pkg-config cmake qtbase5-dev qttools5-dev-tools \
+    libboost-system-dev libboost-chrono-dev libboost-random-dev libssl-dev \
+    libtorrent-rasterbar-dev zlib1g-dev curl
+
+    echo -e "\nCriando volumes de download..."
+    mkdir -p /mnt/incomplete
+    mkdir -p /mnt/complete
+    chmod -R 777 /mnt/incomplete /mnt/complete
+
+    echo -e "\nBaixando qBittorrent mais recente do GitHub..."
+    cd /tmp
+    curl -LO https://github.com/qbittorrent/qBittorrent/releases/download/release-5.6.9/qbittorrent-5.6.9.tar.gz
+    tar xvf qbittorrent-5.6.9.tar.gz
+    cd qbittorrent-5.6.9
+
+    echo -e "\nCompilando qBittorrent..."
+    ./configure --disable-gui
+    make -j$(nproc)
+    make install
+
+    echo -e "\nConfigurando serviço systemd..."
+    cat <<EOF > /etc/systemd/system/qbittorrent-nox.service
+[Unit]
+Description=qBittorrent-nox Service
+After=network.target
+
+[Service]
+User=root
+ExecStart=/usr/local/bin/qbittorrent-nox --webui-port=8090
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+    systemctl daemon-reload
+    systemctl enable qbittorrent-nox
+    systemctl start qbittorrent-nox
+
+    echo -e "\nqBittorrent instalado com sucesso!"
+    echo "WebUI acessível em: http://${IP}:8090"
+    echo "Volumes de download: /mnt/incomplete e /mnt/complete"
+}
+
+# Início do script
+start
+build_container
+description
+install_qbittorrent
+
+msg_ok "Completed Successfully!\n"
