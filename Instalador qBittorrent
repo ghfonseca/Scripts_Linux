@@ -72,7 +72,7 @@ function install_libtorrent() {
     apt install -y build-essential pkg-config libboost-system-dev libboost-chrono-dev \
         libboost-random-dev libssl-dev curl
     cd /tmp
-    wget https://github.com/arvidn/libtorrent/releases/download/libtorrent-2_0_10/libtorrent-rasterbar-2.0.10.tar.gz
+    wget https://sourceforge.net/projects/libtorrent.mirror/files/v2.0.10/libtorrent-rasterbar-2.0.10.tar.gz/download -O libtorrent-rasterbar-2.0.10.tar.gz
     tar xzf libtorrent-rasterbar-2.0.10.tar.gz
     cd libtorrent-rasterbar-2.0.10
     ./configure
