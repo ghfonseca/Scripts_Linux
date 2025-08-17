@@ -70,15 +70,21 @@ function install_libtorrent() {
     echo -e "\nInstalando libtorrent-rasterbar >= 2.0.10..."
     apt update
     apt install -y build-essential pkg-config libboost-system-dev libboost-chrono-dev \
-        libboost-random-dev libssl-dev curl
+        libboost-random-dev libssl-dev curl python3 python3-pip
+
     cd /tmp
+    # Link corrigido para SourceForge
     wget https://sourceforge.net/projects/libtorrent.mirror/files/v2.0.10/libtorrent-rasterbar-2.0.10.tar.gz/download -O libtorrent-rasterbar-2.0.10.tar.gz
     tar xzf libtorrent-rasterbar-2.0.10.tar.gz
     cd libtorrent-rasterbar-2.0.10
+
+    # Compila e instala
     ./configure
     make -j$(nproc)
     make install
     ldconfig
+
+    echo -e "\nlibtorrent-rasterbar 2.0.10 instalado com sucesso!"
 }
 
 # Instala qBittorrent 5.1.2
