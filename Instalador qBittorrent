@@ -6,8 +6,8 @@
 source <(curl -s https://raw.githubusercontent.com/tteck/Proxmox/main/misc/build.func)
 
 function header_info {
-    clear
-    cat <<'EOF'
+clear
+cat <<"EOF"
          ____  _ __  __                             __ 
   ____ _/ __ )(_) /_/ /_____  _____________  ____  / /_
  / __ `/ __  / / __/ __/ __ \/ ___/ ___/ _ \/ __ \/ __/
@@ -54,7 +54,7 @@ function default_settings() {
   echo_default
 }
 
-# Configura volumes do HD externo
+# Função para configurar volumes do HD externo
 function setup_volumes() {
     echo -e "\nConfigurando volumes do HD externo..."
     mkdir -p /mnt/hdexterno/Downloads/incomplete
@@ -65,35 +65,45 @@ function setup_volumes() {
     echo "mp1: /mnt/hdexterno/Downloads/complete,mp=/mnt/complete" >> /etc/pve/lxc/$CT_ID.conf
 }
 
-# Instala libtorrent-rasterbar >=2.0.10
-function install_libtorrent() {
-    echo -e "\nInstalando libtorrent-rasterbar >= 2.0.10..."
+# Função para instalar Boost 1.81
+function install_boost() {
+    echo -e "\nInstalando Boost 1.81..."
     apt update
-    apt install -y build-essential pkg-config libboost-system-dev libboost-chrono-dev \
-        libboost-random-dev libssl-dev curl python3 python3-pip cmake
+    apt install -y build-essential g++ python3-dev cmake wget
 
     cd /tmp
-    wget https://downloads.sourceforge.net/project/libtorrent.mirror/v2.0.10/libtorrent-rasterbar-2.0.10.tar.gz -O libtorrent-rasterbar-2.0.10.tar.gz
+    wget https://sourceforge.net/projects/boost/files/boost/1.81.0/boost_1_81_0.tar.gz/download
+    tar xzf boost_1_81_0.tar.gz
+    cd boost_1_81_0
+    ./bootstrap.sh
+    ./b2 -j$(nproc)
+    ./b2 install
+    ldconfig
+    echo -e "\nBoost 1.81 instalado com sucesso!"
+}
+
+# Função para instalar Libtorrent-rasterbar >=2.0.10
+function install_libtorrent() {
+    echo -e "\nInstalando libtorrent-rasterbar 2.0.10..."
+    apt install -y libssl-dev pkg-config libboost-system-dev libboost-chrono-dev \
+        libboost-random-dev curl
+    cd /tmp
+    wget https://sourceforge.net/projects/libtorrent.mirror/files/v2.0.10/libtorrent-rasterbar-2.0.10.tar.gz/download -O libtorrent-rasterbar-2.0.10.tar.gz
     tar xzf libtorrent-rasterbar-2.0.10.tar.gz
     cd libtorrent-rasterbar-2.0.10
-
-    # Compilação via CMake
-    mkdir -p build
-    cd build
-    cmake ..
+    ./configure
     make -j$(nproc)
     make install
     ldconfig
-
-    echo -e "\nlibtorrent-rasterbar 2.0.10 instalado com sucesso!"
 }
 
-# Instala qBittorrent 5.1.2
+# Função para instalar qBittorrent 5.1.2
 function install_qbittorrent() {
     echo -e "\nInstalando qBittorrent 5.1.2..."
-    apt install -y cmake qtbase5-dev qttools5-dev-tools pkg-config
+    apt install -y build-essential pkg-config cmake qtbase5-dev qttools5-dev-tools \
+        libssl-dev zlib1g-dev curl
     cd /tmp
-    wget -O qbittorrent-5.1.2.tar.gz "https://sourceforge.net/projects/qbittorrent/files/qbittorrent/qbittorrent-5.1.2/qbittorrent-5.1.2.tar.gz/download"
+    wget https://sourceforge.net/projects/qbittorrent/files/qbittorrent/qbittorrent-5.1.2/qbittorrent-5.1.2.tar.gz/download -O qbittorrent-5.1.2.tar.gz
     tar xzf qbittorrent-5.1.2.tar.gz
     cd qbittorrent-5.1.2
     mkdir -p build
@@ -102,7 +112,7 @@ function install_qbittorrent() {
     make -j$(nproc)
     make install
 
-    echo -e "\nCriando serviço systemd..."
+    echo -e "\nConfigurando serviço systemd..."
     cat <<EOF > /etc/systemd/system/qbittorrent-nox.service
 [Unit]
 Description=qBittorrent-nox Service
@@ -121,7 +131,11 @@ EOF
     systemctl enable qbittorrent-nox
     systemctl start qbittorrent-nox
 
-    echo -e "\nqBittorrent instalado com sucesso! Acesse em: http://\$IP:8090"
+    echo -e "\nqBittorrent instalado com sucesso!"
+    echo "WebUI acessível em: http://${IP}:8090"
+    echo "Volumes de download montados:"
+    echo "  /mnt/incomplete -> /mnt/hdexterno/Downloads/incomplete"
+    echo "  /mnt/complete   -> /mnt/hdexterno/Downloads/complete"
 }
 
 # Início do script
@@ -129,7 +143,8 @@ start
 build_container
 description
 setup_volumes
+install_boost
 install_libtorrent
 install_qbittorrent
 
-msg_ok "Completed Successfully!"
+msg_ok "Completed Successfully!\n"
