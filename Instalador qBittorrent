@@ -105,13 +105,12 @@ function install_libtorrent() {
     echo -e "\nlibtorrent-rasterbar 2.0.10 instalado com sucesso!"
 }
 
-# Função para instalar qBittorrent 5.1.2
+# Instala qBittorrent 5.1.2
 function install_qbittorrent() {
     echo -e "\nInstalando qBittorrent 5.1.2..."
-    apt install -y build-essential pkg-config cmake qtbase5-dev qttools5-dev-tools \
-        libssl-dev zlib1g-dev curl
+    apt install -y cmake qtbase5-dev qttools5-dev-tools pkg-config
     cd /tmp
-    wget https://sourceforge.net/projects/qbittorrent/files/qbittorrent/qbittorrent-5.1.2/qbittorrent-5.1.2.tar.gz/download -O qbittorrent-5.1.2.tar.gz
+    wget -O qbittorrent-5.1.2.tar.gz "https://sourceforge.net/projects/qbittorrent/files/qbittorrent/qbittorrent-5.1.2/qbittorrent-5.1.2.tar.gz/download"
     tar xzf qbittorrent-5.1.2.tar.gz
     cd qbittorrent-5.1.2
     mkdir -p build
@@ -120,7 +119,7 @@ function install_qbittorrent() {
     make -j$(nproc)
     make install
 
-    echo -e "\nConfigurando serviço systemd..."
+    echo -e "\nCriando serviço systemd..."
     cat <<EOF > /etc/systemd/system/qbittorrent-nox.service
 [Unit]
 Description=qBittorrent-nox Service
@@ -139,11 +138,7 @@ EOF
     systemctl enable qbittorrent-nox
     systemctl start qbittorrent-nox
 
-    echo -e "\nqBittorrent instalado com sucesso!"
-    echo "WebUI acessível em: http://${IP}:8090"
-    echo "Volumes de download montados:"
-    echo "  /mnt/incomplete -> /mnt/hdexterno/Downloads/incomplete"
-    echo "  /mnt/complete   -> /mnt/hdexterno/Downloads/complete"
+    echo -e "\nqBittorrent instalado com sucesso! Acesse em: http://\$IP:8090"
 }
 
 # Início do script
