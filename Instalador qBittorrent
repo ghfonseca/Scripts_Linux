@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Script Proxmox LXC qBittorrent v5.1.2 (CMake + volumes HD externo)
+# Script Proxmox LXC qBittorrent v5+ (Debian 12 + tar.gz + volumes HD externo)
 # Autor: Gustavo / Adaptado do tteck
 # Licença: MIT
 
@@ -64,7 +64,7 @@ function setup_volumes() {
     echo "mp1: /mnt/hdexterno/Downloads/complete,mp=/mnt/complete" >> /etc/pve/lxc/$CT_ID.conf
 }
 
-# Função de instalação do qBittorrent via tar.gz + CMake
+# Função de instalação do qBittorrent via tar.gz
 function install_qbittorrent() {
     echo -e "\nInstalando dependências..."
     apt update
@@ -78,9 +78,9 @@ function install_qbittorrent() {
     tar xvf qbittorrent-5.1.2.tar.gz
     cd qbittorrent-5.1.2
 
-    echo -e "\nCompilando qBittorrent (CMake)..."
     mkdir build
     cd build
+    echo -e "\nCompilando qBittorrent (CMake)..."
     cmake .. -DENABLE_GUI=OFF
     make -j$(nproc)
     make install
