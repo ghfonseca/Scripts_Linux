@@ -72,7 +72,7 @@ function install_boost() {
     apt install -y build-essential g++ python3-dev cmake wget
 
     cd /tmp
-    wget https://sourceforge.net/projects/boost/files/boost/1.81.0/boost_1_81_0.tar.gz/download
+    wget https://sourceforge.net/projects/boost/files/boost/1.81.0/boost_1_81_0.tar.gz/download -O boost_1_81_0.tar.gz
     tar xzf boost_1_81_0.tar.gz
     cd boost_1_81_0
     ./bootstrap.sh
