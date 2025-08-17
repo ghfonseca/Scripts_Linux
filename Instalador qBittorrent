@@ -74,11 +74,11 @@ function install_qbittorrent() {
     libboost-system-dev libboost-chrono-dev libboost-random-dev libssl-dev \
     libtorrent-rasterbar-dev zlib1g-dev curl
 
-    echo -e "\nBaixando qBittorrent mais recente do GitHub..."
+    echo -e "\nBaixando qBittorrent mais recente do SourceForge..."
     cd /tmp
-    curl -LO https://github.com/qbittorrent/qBittorrent/releases/download/release-5.6.9/qbittorrent-5.6.9.tar.gz
-    tar xvf qbittorrent-5.6.9.tar.gz
-    cd qbittorrent-5.6.9
+    curl -L -o qbittorrent-5.1.2.tar.gz "https://sourceforge.net/projects/qbittorrent/files/qbittorrent/qbittorrent-5.1.2/qbittorrent-5.1.2.tar.gz/download"
+    tar xvf qbittorrent-5.1.2.tar.gz
+    cd qbittorrent-5.1.2
 
     echo -e "\nCompilando qBittorrent..."
     ./configure --disable-gui
