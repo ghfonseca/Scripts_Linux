@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Script Proxmox LXC qBittorrent v5+ (instalação via GitHub tar.gz)
+# Script Proxmox LXC qBittorrent v5+ (tar.gz + volumes HD externo)
 # Autor: Gustavo / Adaptado do tteck
 # Licença: MIT
 
@@ -53,6 +53,19 @@ function default_settings() {
   echo_default
 }
 
+# Função para configurar volumes do HD externo
+function setup_volumes() {
+    echo -e "\nConfigurando volumes do HD externo..."
+    # Cria pastas no HD externo
+    mkdir -p /mnt/hdexterno/Downloads/incomplete
+    mkdir -p /mnt/hdexterno/Downloads/complete
+    chmod -R 777 /mnt/hdexterno/Downloads/incomplete /mnt/hdexterno/Downloads/complete
+
+    # Mapeia volumes no container
+    echo "mp0: /mnt/hdexterno/Downloads/incomplete,mp=/mnt/incomplete" >> /etc/pve/lxc/$CT_ID.conf
+    echo "mp1: /mnt/hdexterno/Downloads/complete,mp=/mnt/complete" >> /etc/pve/lxc/$CT_ID.conf
+}
+
 # Função de instalação do qBittorrent via tar.gz
 function install_qbittorrent() {
     echo -e "\nInstalando dependências..."
@@ -60,11 +73,6 @@ function install_qbittorrent() {
     apt install -y build-essential pkg-config cmake qtbase5-dev qttools5-dev-tools \
     libboost-system-dev libboost-chrono-dev libboost-random-dev libssl-dev \
     libtorrent-rasterbar-dev zlib1g-dev curl
-
-    echo -e "\nCriando volumes de download..."
-    mkdir -p /mnt/incomplete
-    mkdir -p /mnt/complete
-    chmod -R 777 /mnt/incomplete /mnt/complete
 
     echo -e "\nBaixando qBittorrent mais recente do GitHub..."
     cd /tmp
@@ -98,13 +106,16 @@ EOF
 
     echo -e "\nqBittorrent instalado com sucesso!"
     echo "WebUI acessível em: http://${IP}:8090"
-    echo "Volumes de download: /mnt/incomplete e /mnt/complete"
+    echo "Volumes de download montados:"
+    echo "  /mnt/incomplete -> /mnt/hdexterno/Downloads/incomplete"
+    echo "  /mnt/complete   -> /mnt/hdexterno/Downloads/complete"
 }
 
 # Início do script
 start
 build_container
 description
+setup_volumes
 install_qbittorrent
 
 msg_ok "Completed Successfully!\n"
