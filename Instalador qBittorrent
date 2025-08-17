@@ -78,6 +78,8 @@ function install_qbittorrent() {
     tar xvf qbittorrent-5.1.2.tar.gz
     cd qbittorrent-5.1.2
 
+    # Cria ou limpa o diretório build
+    rm -rf build
     mkdir build
     cd build
     echo -e "\nCompilando qBittorrent (CMake)..."
