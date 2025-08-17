@@ -6,8 +6,8 @@
 source <(curl -s https://raw.githubusercontent.com/tteck/Proxmox/main/misc/build.func)
 
 function header_info {
-clear
-cat <<"EOF"
+    clear
+    cat <<'EOF'
          ____  _ __  __                             __ 
   ____ _/ __ )(_) /_/ /_____  _____________  ____  / /_
  / __ `/ __  / / __/ __/ __ \/ ___/ ___/ _ \/ __ \/ __/
@@ -54,7 +54,7 @@ function default_settings() {
   echo_default
 }
 
-# Função para configurar volumes do HD externo
+# Configura volumes do HD externo
 function setup_volumes() {
     echo -e "\nConfigurando volumes do HD externo..."
     mkdir -p /mnt/hdexterno/Downloads/incomplete
@@ -65,7 +65,7 @@ function setup_volumes() {
     echo "mp1: /mnt/hdexterno/Downloads/complete,mp=/mnt/complete" >> /etc/pve/lxc/$CT_ID.conf
 }
 
-# Função de instalação de libtorrent-rasterbar >=2.0.10
+# Instala libtorrent-rasterbar >=2.0.10
 function install_libtorrent() {
     echo -e "\nInstalando libtorrent-rasterbar >= 2.0.10..."
     apt update
@@ -78,4 +78,51 @@ function install_libtorrent() {
     ./configure
     make -j$(nproc)
     make install
-    ldconfi
+    ldconfig
+}
+
+# Instala qBittorrent 5.1.2
+function install_qbittorrent() {
+    echo -e "\nInstalando qBittorrent 5.1.2..."
+    apt install -y cmake qtbase5-dev qttools5-dev-tools pkg-config
+    cd /tmp
+    wget -O qbittorrent-5.1.2.tar.gz "https://sourceforge.net/projects/qbittorrent/files/qbittorrent/qbittorrent-5.1.2/qbittorrent-5.1.2.tar.gz/download"
+    tar xzf qbittorrent-5.1.2.tar.gz
+    cd qbittorrent-5.1.2
+    mkdir -p build
+    cd build
+    cmake .. -DENABLE_GUI=OFF
+    make -j$(nproc)
+    make install
+
+    echo -e "\nCriando serviço systemd..."
+    cat <<EOF > /etc/systemd/system/qbittorrent-nox.service
+[Unit]
+Description=qBittorrent-nox Service
+After=network.target
+
+[Service]
+User=root
+ExecStart=/usr/local/bin/qbittorrent-nox --webui-port=8090
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+    systemctl daemon-reload
+    systemctl enable qbittorrent-nox
+    systemctl start qbittorrent-nox
+
+    echo -e "\nqBittorrent instalado com sucesso! Acesse em: http://\$IP:8090"
+}
+
+# Início do script
+start
+build_container
+description
+setup_volumes
+install_libtorrent
+install_qbittorrent
+
+msg_ok "Completed Successfully!"
